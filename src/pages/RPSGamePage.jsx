@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { loadSettings } from "../logic/settings";
-import { decideWinner, getCpuMove, nextScore } from "../logic/game";
+import { decideWinner, getCpuMove, nextScore } from "../logic/rps";
 
 export function RPSGamePage() {
     const settings = loadSettings() || {};

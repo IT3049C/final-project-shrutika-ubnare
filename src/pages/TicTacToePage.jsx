@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom'
 import { loadSettings } from '../logic/settings'
-
  
 function Square({ value, onSquareClick }) {
   return (
