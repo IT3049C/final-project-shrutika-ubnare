@@ -8,7 +8,7 @@ export const config = {
 export const gameState = {
   currentAttempt: 0,
   currentPosition: 0,
-  targetWord: await getRandomWord(),
+  targetWord: getRandomWord(),
 
 };
 

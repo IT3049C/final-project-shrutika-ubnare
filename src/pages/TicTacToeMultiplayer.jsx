@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { loadSettings } from "../logic/settings";
- 
+
 function Square({ value, onSquareClick }) {
   return (
     <button className="square" onClick={onSquareClick}>
@@ -10,24 +10,23 @@ function Square({ value, onSquareClick }) {
   );
 }
 
-function Board({ xIsNext, squares, onPlay }) {
+function Board({ squares, onPlay }) {
   function handleClick(i) {
-    if (squares[i] || calculateWinner(squares)) {
-      return;
-    }
+    if (squares[i] || calculateWinner(squares)) return;
+
     const nextSquares = squares.slice();
-    nextSquares[i] = xIsNext ? "X" : "O";
+    nextSquares[i] = "X";  
     onPlay(nextSquares);
   }
 
   const winner = calculateWinner(squares);
   let status;
   if (winner) {
-    status = 'Winner: ' + winner;
+    status = "Winner: " + winner;
   } else if (squares.every(Boolean)) {
     status = "Draw!";
   } else {
-    status = 'Next player: ' + (xIsNext ? 'X' : 'O');
+    status = "Next player: X";
   }
 
   return (
@@ -52,12 +51,19 @@ function Board({ xIsNext, squares, onPlay }) {
   );
 }
 
-export function TicTacToePage() {
+export function TicTacToeMultiplayerPage() {
   const settings = loadSettings() || {};
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
-  const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
+  const [roomCode, setRoomCode] = useState("");
+
+  useEffect(() => {
+    if (!roomCode) return;
+    const interval = setInterval(() => {
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [roomCode]);
 
   function handlePlay(nextSquares) {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
@@ -65,43 +71,51 @@ export function TicTacToePage() {
     setCurrentMove(nextHistory.length - 1);
   }
 
-  function jumpTo(nextMove) {
-    setCurrentMove(nextMove);
+  function jumpTo(move) {
+    setCurrentMove(move);
   }
 
   const moves = history.map((squares, move) => {
-    let description;
-    if (move > 0) {
-      description = 'Go to move #' + move;
-    } else {
-      description = 'Go to game start';
-    }
+    const desc = move ? "Go to move #" + move : "Go to game start";
     return (
       <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
+        <button onClick={() => jumpTo(move)}>{desc}</button>
       </li>
     );
   });
+
+  function handleJoinRoom() {
+    setRoomCode(roomCode.trim());
+  }
 
   return (
     <main className="game card">
       <Link to="/">Back to hub</Link>
       <header>
-        <h2>Tic-Tac-Toe</h2>
+        <h2>Tic-Tac-Toe Multiplayer</h2>
         <p data-testid="greeting">
-          {settings?.name ? `Welcome, ${settings.name}!` :
-          ""}
+          {settings?.name ? `Welcome, ${settings.name}!` : ""}
         </p>
-        <Link to= "/">Back to hub</Link>
       </header>
 
+      {!roomCode && (
+        <div>
+          <label htmlFor="room-code">Room Code:</label>
+          <input
+            id="room-code"
+            value={roomCode}
+            onChange={(e) => setRoomCode(e.target.value)}
+          />
+          <button type="button" onClick={handleJoinRoom}>
+            Join Room
+          </button>
+        </div>
+      )}
+
       <div className="game-board">
-        <Board 
-        xIsNext={xIsNext} 
-        squares={currentSquares} 
-        onPlay={handlePlay} 
-        />
+        <Board squares={currentSquares} onPlay={handlePlay} />
       </div>
+
       <div className="game-info">
         <ol>{moves}</ol>
       </div>
@@ -120,8 +134,7 @@ function calculateWinner(squares) {
     [0, 4, 8],
     [2, 4, 6],
   ];
-  for (let line of lines) {
-    const [a, b, c] = line;
+  for (let [a, b, c] of lines) {
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return squares[a];
     }

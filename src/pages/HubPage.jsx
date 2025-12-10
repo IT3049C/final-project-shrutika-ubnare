@@ -91,6 +91,14 @@ export function HubPage() {
                             Play Typing Speed Test
                         </button>
                     </li>
+                    <li>
+                        <button 
+                        type="button"
+                        onClick={() => handleGoToGame("/tictactoe-mp")}
+                        >
+                            Play Tic Tac Toe Multiplayer
+                        </button>
+                    </li>
                 </ul>
             </section>
         </main>

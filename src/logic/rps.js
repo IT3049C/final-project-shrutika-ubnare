@@ -19,7 +19,7 @@ export function getCpuMove({ difficulty = "normal",
         if (playerMove === cpuMove) return "tie";
         if (
             (playerMove === "rock" && cpuMove === "scissors") ||
-            (playerMove === "paper" && cpuMove == "rock") ||
+            (playerMove === "paper" && cpuMove === "rock") ||
             (playerMove === "scissors" && cpuMove === "paper")
         ) {
             return "player";

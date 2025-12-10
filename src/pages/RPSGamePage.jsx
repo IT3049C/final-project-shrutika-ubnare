@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { loadSettings } from "../logic/settings";
 import { decideWinner, getCpuMove, nextScore } from "../logic/rps";
+import { Link } from "react-router-dom";
+
 
 export function RPSGamePage() {
     const settings = loadSettings() || {};
@@ -31,6 +33,7 @@ export function RPSGamePage() {
 
   return (
     <main className="card">
+      <Link to="/">Back to hub</Link>
       <header>
         <h2>Rock Paper Scissors</h2>
       </header>
@@ -44,13 +47,13 @@ export function RPSGamePage() {
       </div>
 
       <div className="game-actions">
-        <button data-move="rock" onClick={() => handleMove("rock")}>
+        <button data-move="rock" onClick={() => handleMove("rock")} aria-label="Play Rock"> 
           Rock
         </button>
-        <button data-move="paper" onClick={() => handleMove("paper")}>
+        <button data-move="paper" onClick={() => handleMove("paper")} aria-label="Play Paper">
           Paper
         </button>
-        <button data-move="scissors" onClick={() => handleMove("scissors")}>
+        <button data-move="scissors" onClick={() => handleMove("scissors")} aria-label="Play Scissors">
           Scissors
         </button>
       </div>
@@ -60,8 +63,8 @@ export function RPSGamePage() {
         <div>CPU: <span id="score-cpu">{score.cpu}</span></div>
         <div>Ties: <span id="score-ties">{score.ties}</span></div>
       </div>
-v
-      <ul id="history">
+
+      <ul id="history" aria-label="Game history">
         {history.map((entry, idx) => (
           <li key={idx}>
             {`Player(${entry.playerMove}) vs CPU(${entry.cpuMove}) — ${entry.outcome}`}

@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { loadSettings } from '../logic/settings'
-import { checkGuess, config, gameState } from '../logic/wordle'
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { loadSettings } from "../logic/settings";
+import { checkGuess, config, gameState, getRandomWord } from "../logic/wordle";
 
 export function WordlePage() {
     const settings = loadSettings() || {};
@@ -33,7 +33,7 @@ export function WordlePage() {
         setHistory((prev) => [...prev, { guess: upper, result }]);
 
         if (upper.toLowerCase() === gameState.targetWord.toLowerCase()) {
-            setMessage("You foudn the word!");
+            setMessage("You found the word!");
         } else {
             setMessage("");
         }
@@ -45,10 +45,12 @@ export function WordlePage() {
         setHistory([]);
         gameState.currentAttempt = 0;
         gameState.currentPosition = 0;
+        gameState.targetWord = getRandomWord();
     }
 
     return (
         <main className="card">
+            <Link to="/">Back to hub</Link>
             <header>
                 <h2>Wordle</h2>
                 <div data-testid="greeting">

@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadSettings } from "../logic/settings";
 
-const SAMPLE_TEXT = "Typing games are fun and help you practice speed and accuracy.";
+const SAMPLE_TEXT =
+  "Typing games are fun and help you practice speed and accuracy.";
 
 const TEST_DURATION_SECONDS = 30;
 
-export function TypingSpeedPage() {
+export function TypingSpeedTestPage() {
   const settings = loadSettings() || {};
   const [text] = useState(SAMPLE_TEXT);
   const [input, setInput] = useState("");
@@ -17,14 +18,33 @@ export function TypingSpeedPage() {
 
   useEffect(() => {
     if (!isRunning) return;
+
     if (timeLeft <= 0) {
       setIsRunning(false);
-      computeResults();
+
+      const wordsTyped = input.trim().split(/\s+/).filter(Boolean).length;
+      const minutes = TEST_DURATION_SECONDS / 60;
+      const computedWpm =
+        minutes > 0 ? Math.round(wordsTyped / minutes) : 0;
+
+      const len = Math.min(input.length, text.length);
+      let correctChars = 0;
+      for (let i = 0; i < len; i++) {
+        if (input[i] === text[i]) correctChars++;
+      }
+      const totalChars = input.length || 1;
+      const computedAccuracy = Math.round(
+        (correctChars / totalChars) * 100
+      );
+
+      setWpm(computedWpm);
+      setAccuracy(computedAccuracy);
       return;
     }
+
     const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearTimeout(id);
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, input, text]);
 
   function startTest() {
     setInput("");
@@ -39,23 +59,6 @@ export function TypingSpeedPage() {
     setInput(e.target.value);
   }
 
-  function computeResults() {
-    const wordsTyped = input.trim().split(/\s+/).filter(Boolean).length;
-    const minutes = TEST_DURATION_SECONDS / 60;
-    const computedWpm = minutes > 0 ? Math.round(wordsTyped / minutes) : 0;
-    const len = Math.min(input.length, text.length);
-
-    let correctChars = 0;
-    for (let i = 0; i < len; i++) {
-      if (input[i] === text[i]) correctChars++;
-    }
-    const totalChars = input.length || 1;
-    const computedAccuracy = Math.round((correctChars / totalChars) * 100);
-
-    setWpm(computedWpm);
-    setAccuracy(computedAccuracy);
-  }
-
   function handleReset() {
     setInput("");
     setTimeLeft(TEST_DURATION_SECONDS);
@@ -66,6 +69,7 @@ export function TypingSpeedPage() {
 
   return (
     <main className="card">
+      <Link to="/">Back to hub</Link>
       <header>
         <h2>Typing Speed Test</h2>
         <div data-testid="greeting">
