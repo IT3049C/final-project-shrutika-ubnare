@@ -1,129 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { loadSettings } from "../logic/settings";
+import {
+  createRoom,
+  joinRoom,
+  updateRoom,
+  fetchRoom,
+} from "../logic/gameRoomApi";
 
-function Square({ value, onSquareClick }) {
-  return (
-    <button className="square" onClick={onSquareClick}>
-      {value}
-    </button>
-  );
-}
+const emptyBoard = Array(9).fill(null);
 
-function Board({ squares, onPlay }) {
-  function handleClick(i) {
-    if (squares[i] || calculateWinner(squares)) return;
-
-    const nextSquares = squares.slice();
-    nextSquares[i] = "X";  
-    onPlay(nextSquares);
-  }
-
-  const winner = calculateWinner(squares);
-  let status;
-  if (winner) {
-    status = "Winner: " + winner;
-  } else if (squares.every(Boolean)) {
-    status = "Draw!";
-  } else {
-    status = "Next player: X";
-  }
-
-  return (
-    <>
-      <div className="status">{status}</div>
-      <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
-        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
-        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
-      </div>
-      <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
-        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
-        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
-      </div>
-      <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
-        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
-        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
-      </div>
-    </>
-  );
-}
-
-export function TicTacToeMultiplayerPage() {
-  const settings = loadSettings() || {};
-  const [history, setHistory] = useState([Array(9).fill(null)]);
-  const [currentMove, setCurrentMove] = useState(0);
-  const currentSquares = history[currentMove];
-  const [roomCode, setRoomCode] = useState("");
-
-  useEffect(() => {
-    if (!roomCode) return;
-    const interval = setInterval(() => {
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [roomCode]);
-
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
-  }
-
-  function jumpTo(move) {
-    setCurrentMove(move);
-  }
-
-  const moves = history.map((squares, move) => {
-    const desc = move ? "Go to move #" + move : "Go to game start";
-    return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{desc}</button>
-      </li>
-    );
-  });
-
-  function handleJoinRoom() {
-    setRoomCode(roomCode.trim());
-  }
-
-  return (
-    <main className="game card">
-      <Link to="/">Back to hub</Link>
-      <header>
-        <h2>Tic-Tac-Toe Multiplayer</h2>
-        <p data-testid="greeting">
-          {settings?.name ? `Welcome, ${settings.name}!` : ""}
-        </p>
-      </header>
-
-      {!roomCode && (
-        <div>
-          <label htmlFor="room-code">Room Code:</label>
-          <input
-            id="room-code"
-            value={roomCode}
-            onChange={(e) => setRoomCode(e.target.value)}
-          />
-          <button type="button" onClick={handleJoinRoom}>
-            Join Room
-          </button>
-        </div>
-      )}
-
-      <div className="game-board">
-        <Board squares={currentSquares} onPlay={handlePlay} />
-      </div>
-
-      <div className="game-info">
-        <ol>{moves}</ol>
-      </div>
-    </main>
-  );
-}
-
-function calculateWinner(squares) {
+function calculateWinner(board) {
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -134,10 +19,156 @@ function calculateWinner(squares) {
     [0, 4, 8],
     [2, 4, 6],
   ];
-  for (let [a, b, c] of lines) {
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+  for (const [a, b, c] of lines) {
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return board[a];
     }
   }
   return null;
+}
+
+export default function TicTacToeMultiplayerPage() {
+  const [roomId, setRoomId] = useState("");
+  const [myPlayerId, setMyPlayerId] = useState("");
+  const [board, setBoard] = useState(emptyBoard);
+  const [currentTurn, setCurrentTurn] = useState("X");
+  const [myMark, setMyMark] = useState(null);
+  const [status, setStatus] = useState("Not connected");
+  const [joinCodeInput, setJoinCodeInput] = useState("");
+
+  const winner = calculateWinner(board);
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const id = setInterval(async () => {
+      try {
+        const data = await fetchRoom(roomId);
+        if (!data.state) return;
+        setBoard(data.state.board ?? emptyBoard);
+        setCurrentTurn(data.state.currentTurn ?? "X");
+      } catch {
+        // ignore
+      }
+    }, 1500);
+
+    return () => clearInterval(id);
+  }, [roomId]);
+
+  async function handleCreateRoom() {
+    try {
+      const initialState = { board: emptyBoard, currentTurn: "X" };
+      const data = await createRoom(initialState);
+      setRoomId(data.roomId);
+      setMyPlayerId(data.playerId);
+      setMyMark("X");
+      setStatus(`Created room ${data.roomId}. You are X.`);
+    } catch (e) {
+      setStatus(e.message);
+    }
+  }
+
+  async function handleJoinRoom(e) {
+    e.preventDefault();
+    if (!joinCodeInput.trim()) return;
+    try {
+      const data = await joinRoom(joinCodeInput.trim());
+      setRoomId(data.roomId);
+      setMyPlayerId(data.playerId);
+      setBoard(data.state?.board ?? emptyBoard);
+      setCurrentTurn(data.state?.currentTurn ?? "X");
+      setMyMark("O");
+      setStatus(`Joined room ${data.roomId}. You are O.`);
+    } catch (e) {
+      setStatus(e.message);
+    }
+  }
+
+  async function handleClickCell(index) {
+    if (!roomId || !myMark) return;
+    if (board[index] || winner) return;
+    if (currentTurn !== myMark) return; 
+
+    const newBoard = board.slice();
+    newBoard[index] = myMark;
+    const nextTurn = myMark === "X" ? "O" : "X";
+    const newState = { board: newBoard, currentTurn: nextTurn };
+
+    setBoard(newBoard);
+    setCurrentTurn(nextTurn);
+
+    try {
+      await updateRoom(roomId, myPlayerId, newState);
+    } catch (e) {
+      setStatus(e.message);
+    }
+  }
+
+  function renderCell(i) {
+    return (
+      <button
+        className="ttt-cell"
+        onClick={() => handleClickCell(i)}
+        data-testid={`cell-${i}`}
+      >
+        {board[i]}
+      </button>
+    );
+  }
+
+  let gameStatusText = "";
+  if (winner) {
+    gameStatusText = `Winner: ${winner}`;
+  } else {
+    gameStatusText = `Turn: ${currentTurn}`;
+  }
+
+  return (
+    <div className="ttt-mp-page">
+      <h1>Multiplayer Tic Tac Toe</h1>
+
+      <p>{status}</p>
+
+      {!roomId && (
+        <div className="room-controls">
+          <button onClick={handleCreateRoom}>Create Room</button>
+
+          <form onSubmit={handleJoinRoom}>
+            <input
+              placeholder="Enter room code"
+              value={joinCodeInput}
+              onChange={(e) => setJoinCodeInput(e.target.value)}
+            />
+            <button type="submit">Join Room</button>
+          </form>
+        </div>
+      )}
+
+      {roomId && (
+        <div className="room-info">
+          <p>Room ID: {roomId}</p>
+          <p>Your mark: {myMark}</p>
+          <p>{gameStatusText}</p>
+        </div>
+      )}
+
+      <div className="ttt-board">
+        <div className="ttt-row">
+          {renderCell(0)}
+          {renderCell(1)}
+          {renderCell(2)}
+        </div>
+        <div className="ttt-row">
+          {renderCell(3)}
+          {renderCell(4)}
+          {renderCell(5)}
+        </div>
+        <div className="ttt-row">
+          {renderCell(6)}
+          {renderCell(7)}
+          {renderCell(8)}
+        </div>
+      </div>
+    </div>
+  );
 }

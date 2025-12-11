@@ -5,7 +5,7 @@ import { RPSGamePage } from './pages/RPSGamePage.jsx'
 import { TicTacToePage } from './pages/TicTacToePage.jsx'
 import { WordlePage } from './pages/WordlePage.jsx'
 import { TypingSpeedTestPage } from './pages/TypingSpeedTestPage.jsx'
-import { TicTacToeMultiplayerPage } from './pages/TicTacToeMultiplayer.jsx'
+import TicTacToeMultiplayerPage from './pages/TicTacToeMultiplayer.jsx'
 
 function App() {
 
