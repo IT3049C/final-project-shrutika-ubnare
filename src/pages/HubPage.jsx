@@ -70,14 +70,6 @@ export function HubPage() {
                     <li>
                         <button
                         type="button"
-                        onClick={() => handleGoToGame("/tictactoe")}
-                        >
-                            Play Tic Tac Toe
-                        </button>
-                    </li>
-                    <li>
-                        <button
-                        type="button"
                         onClick={() => handleGoToGame("/wordle")}
                         >
                             Play Wordle
@@ -89,6 +81,14 @@ export function HubPage() {
                         onClick={() => handleGoToGame("/typingspeedtest")}
                         >
                             Play Typing Speed Test
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                        type="button"
+                        onClick={() => handleGoToGame("/tictactoe")}
+                        >
+                            Play Tic Tac Toe
                         </button>
                     </li>
                     <li>

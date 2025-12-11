@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { loadSettings } from "../logic/settings";
-import { checkGuess, config, gameState, getRandomWord } from "../logic/wordle";
+import { checkGuess, config, gameState } from "../logic/wordle";
 
 export function WordlePage() {
     const settings = loadSettings() || {};
@@ -16,7 +16,7 @@ export function WordlePage() {
             setMessage(`Guess must be ${config.wordLength} letters`);
             return;
         }
-
+        
         let result;
         try {
             result = await checkGuess(guess);
@@ -39,13 +39,13 @@ export function WordlePage() {
         }
         setGuess("");
     }
+
     function handleReset() {
         setGuess("");
         setMessage("");
         setHistory([]);
         gameState.currentAttempt = 0;
         gameState.currentPosition = 0;
-        gameState.targetWord = getRandomWord();
     }
 
     return (
@@ -56,7 +56,6 @@ export function WordlePage() {
                 <div data-testid="greeting">
                     {settings?.name ? `Welcome, ${settings.name}!` : ""}
                 </div>
-                <Link to="/">Back to hub</Link>
             </header>
 
             <form onSubmit={handleSubmit}>

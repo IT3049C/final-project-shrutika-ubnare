@@ -75,7 +75,6 @@ export function TypingSpeedTestPage() {
         <div data-testid="greeting">
           {settings?.name ? `Welcome, ${settings.name}!` : ""}
         </div>
-        <Link to="/">Back to hub</Link>
       </header>
 
       <section aria-label="Text to type">

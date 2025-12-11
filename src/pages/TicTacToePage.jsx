@@ -92,7 +92,6 @@ export function TicTacToePage() {
           {settings?.name ? `Welcome, ${settings.name}!` :
           ""}
         </p>
-        <Link to= "/">Back to hub</Link>
       </header>
 
       <div className="game-board">
