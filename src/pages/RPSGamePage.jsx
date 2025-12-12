@@ -3,7 +3,6 @@ import { loadSettings } from "../logic/settings";
 import { decideWinner, getCpuMove, nextScore } from "../logic/rps";
 import { Link } from "react-router-dom";
 
-
 export function RPSGamePage() {
   const settings = loadSettings() || {};
   const [score, setScore] = useState({ player: 0, cpu: 0, ties: 0 });
@@ -13,15 +12,12 @@ export function RPSGamePage() {
   function handleMove(playerMove) {
     const cpuMove = getCpuMove({
       difficulty: settings?.difficulty || "normal",
-      lastPlayerMove
+      lastPlayerMove,
     });
 
     const outcome = decideWinner(playerMove, cpuMove);
-    setScore(prev => nextScore(prev, outcome));
-    setHistory(prev => [
-      ...prev,
-      { playerMove, cpuMove, outcome }
-    ]);
+    setScore((prev) => nextScore(prev, outcome));
+    setHistory((prev) => [...prev, { playerMove, cpuMove, outcome }]);
     setLastPlayerMove(playerMove);
   }
 
@@ -35,6 +31,7 @@ export function RPSGamePage() {
     <main className="card">
       <div className="game-shell">
         <Link to="/">Back to hub</Link>
+
         <header>
           <h1>Rock Paper Scissors</h1>
 
@@ -48,21 +45,39 @@ export function RPSGamePage() {
         </header>
 
         <div className="game-actions">
-          <button data-move="rock" onClick={() => handleMove("rock")} aria-label="Play Rock">
+          <button
+            data-move="rock"
+            onClick={() => handleMove("rock")}
+            aria-label="Play Rock"
+          >
             Rock
           </button>
-          <button data-move="paper" onClick={() => handleMove("paper")} aria-label="Play Paper">
+          <button
+            data-move="paper"
+            onClick={() => handleMove("paper")}
+            aria-label="Play Paper"
+          >
             Paper
           </button>
-          <button data-move="scissors" onClick={() => handleMove("scissors")} aria-label="Play Scissors">
+          <button
+            data-move="scissors"
+            onClick={() => handleMove("scissors")}
+            aria-label="Play Scissors"
+          >
             Scissors
           </button>
         </div>
 
         <div className="score-row">
-          <div>Player: <span id="score-player">{score.player}</span></div>
-          <div>CPU: <span id="score-cpu">{score.cpu}</span></div>
-          <div>Ties: <span id="score-ties">{score.ties}</span></div>
+          <div>
+            Player: <span id="score-player">{score.player}</span>
+          </div>
+          <div>
+            CPU: <span id="score-cpu">{score.cpu}</span>
+          </div>
+          <div>
+            Ties: <span id="score-ties">{score.ties}</span>
+          </div>
         </div>
 
         <ul id="history" aria-label="Game history">
@@ -73,9 +88,10 @@ export function RPSGamePage() {
           ))}
         </ul>
 
-        <button id="reset-game" onClick={handleReset}>Reset Game</button>
+        <button id="reset-game" onClick={handleReset}>
+          Reset Game
+        </button>
       </div>
     </main>
   );
 }
-

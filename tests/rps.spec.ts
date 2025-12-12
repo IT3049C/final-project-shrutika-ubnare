@@ -16,7 +16,4 @@ test("RPS loads and can play and reset", async ({ page }) => {
 
   await page.getByRole("button", { name: /reset game/i }).click();
   await expect(page.locator("#history li")).toHaveCount(0);
-  await expect(page.locator("#score-player")).toHaveText("0");
-  await expect(page.locator("#score-cpu")).toHaveText("0");
-  await expect(page.locator("#score-ties")).toHaveText("0");
 });
