@@ -1,110 +1,100 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { loadSettings } from "../logic/settings";
 
-const SAMPLE_TEXT =
-  "Typing games are fun and help you practice speed and accuracy.";
-
-const TEST_DURATION_SECONDS = 30;
+const TEST_DURATION = 30;
 
 export function TypingSpeedTestPage() {
+  const [timeLeft, setTimeLeft] = useState(TEST_DURATION);
+  const [started, setStarted] = useState(false);
+  const [finished, setFinished] = useState(false);
+  const [text, setText] = useState("");
   const settings = loadSettings() || {};
-  const [text] = useState(SAMPLE_TEXT);
-  const [input, setInput] = useState("");
-  const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS);
-  const [isRunning, setIsRunning] = useState(false);
-  const [wpm, setWpm] = useState(0);
-  const [accuracy, setAccuracy] = useState(100);
-
-  useEffect(() => {
-    if (!isRunning) return;
-
-    if (timeLeft <= 0) {
-      setIsRunning(false);
-
-      const wordsTyped = input.trim().split(/\s+/).filter(Boolean).length;
-      const minutes = TEST_DURATION_SECONDS / 60;
-      const computedWpm =
-        minutes > 0 ? Math.round(wordsTyped / minutes) : 0;
-
-      const len = Math.min(input.length, text.length);
-      let correctChars = 0;
-      for (let i = 0; i < len; i++) {
-        if (input[i] === text[i]) correctChars++;
-      }
-      const totalChars = input.length || 1;
-      const computedAccuracy = Math.round(
-        (correctChars / totalChars) * 100
-      );
-
-      setWpm(computedWpm);
-      setAccuracy(computedAccuracy);
-      return;
-    }
-
-    const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
-    return () => clearTimeout(id);
-  }, [isRunning, timeLeft, input, text]);
-
-  function startTest() {
-    setInput("");
-    setTimeLeft(TEST_DURATION_SECONDS);
-    setIsRunning(true);
-    setWpm(0);
-    setAccuracy(100);
-  }
 
   function handleChange(e) {
-    if (!isRunning) return;
-    setInput(e.target.value);
+    if (!started) {
+      setStarted(true);
+    }
+    if (finished) {
+      return;
+    }
+    setText(e.target.value);
   }
 
+  useEffect(() => {
+    if (!started || finished) return;
+
+    const id = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(id);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [started, finished]);
+
+  useEffect(() => {
+    if (timeLeft === 0 && started) {
+      setFinished(true);
+    }
+  }, [timeLeft, started]);
+
+  const wordsTyped = text.trim().length
+    ? text.trim().split(/\s+/).length
+    : 0;
+  const minutesElapsed =
+    (TEST_DURATION - timeLeft) > 0
+      ? (TEST_DURATION - timeLeft) / 60
+      : 0;
+  const wpm =
+    minutesElapsed > 0 ? Math.round(wordsTyped / minutesElapsed) : 0;
+
   function handleReset() {
-    setInput("");
-    setTimeLeft(TEST_DURATION_SECONDS);
-    setIsRunning(false);
-    setWpm(0);
-    setAccuracy(100);
+    setTimeLeft(TEST_DURATION);
+    setStarted(false);
+    setFinished(false);
+    setText("");
   }
 
   return (
-    <main className="card">
-      <Link to="/">Back to hub</Link>
-      <header>
-        <h2>Typing Speed Test</h2>
-        <div data-testid="greeting">
-          {settings?.name ? `Welcome, ${settings.name}!` : ""}
-        </div>
-      </header>
+    <div className="card">
+      <div className="game-shell">
+        <Link to="/">Back to hub</Link>
+        <header>
+          <h1>Typing Speed Test</h1>
+          <div data-testid="greeting">
+            {settings?.name ? `Welcome, ${settings.name}!` : ""}
+          </div>
 
-      <section aria-label="Text to type">
-        <p>{text}</p>
-      </section>
+          <div className="difficulty-info" id="current-difficulty">
+            Difficulty: {settings?.difficulty || "normal"}
+          </div>
+        </header>
 
-      <section aria-label="Typing controls">
         <p>Time left: {timeLeft}s</p>
-        <button type="button" onClick={startTest}>
-          Start test
-        </button>
-        <button type="button" onClick={handleReset}>
-          Reset
-        </button>
-        <div>
-          <label htmlFor="typing-input">Type here</label>
-          <textarea
-            id="typing-input"
-            rows={4}
-            value={input}
-            onChange={handleChange}
-            disabled={!isRunning}
-          />
-        </div>
-      </section>
 
-      <section aria-label="Results">
-        <p>WPM: {wpm}</p>
-        <p>Accuracy: {accuracy}%</p>
-      </section>
-    </main>
+        <textarea
+          value={text}
+          onChange={handleChange}
+          disabled={finished}
+          placeholder="Start typing to begin the test..."
+          rows={6}
+          cols={60}
+        />
+
+        <div className="typing-stats">
+          <p>Words typed: {wordsTyped}</p>
+          <p>Estimated WPM: {wpm}</p>
+        </div>
+
+        <button onClick={handleReset}>Reset</button>
+
+        {finished && <p>Time is up! You can reset to try again.</p>}
+      </div>
+    </div>
   );
 }

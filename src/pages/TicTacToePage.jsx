@@ -1,110 +1,12 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { loadSettings } from "../logic/settings";
- 
+
 function Square({ value, onSquareClick }) {
   return (
     <button className="square" onClick={onSquareClick}>
       {value}
     </button>
-  );
-}
-
-function Board({ xIsNext, squares, onPlay }) {
-  function handleClick(i) {
-    if (squares[i] || calculateWinner(squares)) {
-      return;
-    }
-    const nextSquares = squares.slice();
-    nextSquares[i] = xIsNext ? "X" : "O";
-    onPlay(nextSquares);
-  }
-
-  const winner = calculateWinner(squares);
-  let status;
-  if (winner) {
-    status = 'Winner: ' + winner;
-  } else if (squares.every(Boolean)) {
-    status = "Draw!";
-  } else {
-    status = 'Next player: ' + (xIsNext ? 'X' : 'O');
-  }
-
-  return (
-    <>
-      <div className="status">{status}</div>
-      <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
-        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
-        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
-      </div>
-      <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
-        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
-        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
-      </div>
-      <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
-        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
-        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
-      </div>
-    </>
-  );
-}
-
-export function TicTacToePage() {
-  const settings = loadSettings() || {};
-  const [history, setHistory] = useState([Array(9).fill(null)]);
-  const [currentMove, setCurrentMove] = useState(0);
-  const xIsNext = currentMove % 2 === 0;
-  const currentSquares = history[currentMove];
-
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
-  }
-
-  function jumpTo(nextMove) {
-    setCurrentMove(nextMove);
-  }
-
-  const moves = history.map((squares, move) => {
-    let description;
-    if (move > 0) {
-      description = 'Go to move #' + move;
-    } else {
-      description = 'Go to game start';
-    }
-    return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
-      </li>
-    );
-  });
-
-  return (
-    <main className="game card">
-      <Link to="/">Back to hub</Link>
-      <header>
-        <h2>Tic-Tac-Toe</h2>
-        <p data-testid="greeting">
-          {settings?.name ? `Welcome, ${settings.name}!` :
-          ""}
-        </p>
-      </header>
-
-      <div className="game-board">
-        <Board 
-        xIsNext={xIsNext} 
-        squares={currentSquares} 
-        onPlay={handlePlay} 
-        />
-      </div>
-      <div className="game-info">
-        <ol>{moves}</ol>
-      </div>
-    </main>
   );
 }
 
@@ -126,4 +28,110 @@ function calculateWinner(squares) {
     }
   }
   return null;
+}
+
+function Board({ squares, onPlayerMove }) {
+  const winner = calculateWinner(squares);
+  const isFull = squares.every(Boolean);
+
+  let status;
+  if (winner) {
+    status = "Winner: " + winner;
+  } else if (isFull) {
+    status = "Draw!";
+  } else {
+    status = "Your turn (X)";
+  }
+
+  return (
+    <>
+      <div className="status">{status}</div>
+      <div className="board-row">
+        <Square value={squares[0]} onSquareClick={() => onPlayerMove(0)} />
+        <Square value={squares[1]} onSquareClick={() => onPlayerMove(1)} />
+        <Square value={squares[2]} onSquareClick={() => onPlayerMove(2)} />
+      </div>
+      <div className="board-row">
+        <Square value={squares[3]} onSquareClick={() => onPlayerMove(3)} />
+        <Square value={squares[4]} onSquareClick={() => onPlayerMove(4)} />
+        <Square value={squares[5]} onSquareClick={() => onPlayerMove(5)} />
+      </div>
+      <div className="board-row">
+        <Square value={squares[6]} onSquareClick={() => onPlayerMove(6)} />
+        <Square value={squares[7]} onSquareClick={() => onPlayerMove(7)} />
+        <Square value={squares[8]} onSquareClick={() => onPlayerMove(8)} />
+      </div>
+    </>
+  );
+}
+
+export function TicTacToePage() {
+  const settings = loadSettings() || {};
+  const [squares, setSquares] = useState(Array(9).fill(null));
+  const [isPlayerTurn, setIsPlayerTurn] = useState(true);
+
+  function resetGame() {
+    setSquares(Array(9).fill(null));
+    setIsPlayerTurn(true);
+  }
+
+  function makeCpuMove(current) {
+    if (calculateWinner(current)) return;
+
+    const emptyIndices = current
+      .map((val, idx) => (val === null ? idx : null))
+      .filter((idx) => idx !== null);
+
+    if (emptyIndices.length === 0) return;
+
+    const randomIndex =
+      emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+
+    const next = current.slice();
+    next[randomIndex] = "O";
+    setSquares(next);
+    setIsPlayerTurn(true);
+  }
+
+  function handlePlayerMove(i) {
+    if (!isPlayerTurn) return;
+    if (squares[i] || calculateWinner(squares)) return;
+
+    const next = squares.slice();
+    next[i] = "X";
+    setSquares(next);
+    setIsPlayerTurn(false);
+
+    setTimeout(() => makeCpuMove(next), 300);
+  }
+
+  const winner = calculateWinner(squares);
+  const isFull = squares.every(Boolean);
+
+  return (
+    <main className="card">
+      <div className="game-shell">
+        <Link to="/">Back to hub</Link>
+        <header>
+          <h1>Tic-Tac-Toe</h1>
+          <p data-testid="greeting">
+            {settings?.name ? `Welcome, ${settings.name}!` : ""}
+          </p>
+          <div className="difficulty-info" id="current-difficulty">
+            Difficulty: {settings?.difficulty || "normal"}
+          </div>
+        </header>
+
+        <div className="game-board">
+          <Board squares={squares} onPlayerMove={handlePlayerMove} />
+        </div>
+
+        <div className="game-info">
+          <button onClick={resetGame}>Reset game</button>
+          {winner && <p>Game over! Winner: {winner}</p>}
+          {!winner && isFull && <p>Game over! It&apos;s a draw.</p>}
+        </div>
+      </div>
+    </main>
+  );
 }

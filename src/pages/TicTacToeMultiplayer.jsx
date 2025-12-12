@@ -5,6 +5,8 @@ import {
   updateRoom,
   fetchRoom,
 } from "../logic/gameRoomApi";
+import { Link } from "react-router-dom";
+import { loadSettings } from "../logic/settings";
 
 const emptyBoard = Array(9).fill(null);
 
@@ -35,7 +37,7 @@ export default function TicTacToeMultiplayerPage() {
   const [myMark, setMyMark] = useState(null);
   const [status, setStatus] = useState("Not connected");
   const [joinCodeInput, setJoinCodeInput] = useState("");
-
+  const settings = loadSettings() || {};
   const winner = calculateWinner(board);
 
   useEffect(() => {
@@ -87,7 +89,7 @@ export default function TicTacToeMultiplayerPage() {
   async function handleClickCell(index) {
     if (!roomId || !myMark) return;
     if (board[index] || winner) return;
-    if (currentTurn !== myMark) return; 
+    if (currentTurn !== myMark) return;
 
     const newBoard = board.slice();
     newBoard[index] = myMark;
@@ -124,49 +126,62 @@ export default function TicTacToeMultiplayerPage() {
   }
 
   return (
-    <div className="ttt-mp-page">
-      <h1>Multiplayer Tic Tac Toe</h1>
+    <div className="card">
+      <div className="game-shell">
+        <Link to="/">Back to hub</Link>
+        <header>
+          <h1>Multiplayer Tic Tac Toe</h1>
 
-      <p>{status}</p>
+          <div data-testid="greeting">
+            {settings?.name ? `Welcome, ${settings.name}!` : ""}
+          </div>
 
-      {!roomId && (
-        <div className="room-controls">
-          <button onClick={handleCreateRoom}>Create Room</button>
+          <div className="difficulty-info" id="current-difficulty">
+            Difficulty: {settings?.difficulty || "normal"}
+          </div>
+        </header>
 
-          <form onSubmit={handleJoinRoom}>
-            <input
-              placeholder="Enter room code"
-              value={joinCodeInput}
-              onChange={(e) => setJoinCodeInput(e.target.value)}
-            />
-            <button type="submit">Join Room</button>
-          </form>
-        </div>
-      )}
+        <p>{status}</p>
 
-      {roomId && (
-        <div className="room-info">
-          <p>Room ID: {roomId}</p>
-          <p>Your mark: {myMark}</p>
-          <p>{gameStatusText}</p>
-        </div>
-      )}
+        {!roomId && (
+          <div className="room-controls">
+            <button onClick={handleCreateRoom}>Create Room</button>
 
-      <div className="ttt-board">
-        <div className="ttt-row">
-          {renderCell(0)}
-          {renderCell(1)}
-          {renderCell(2)}
-        </div>
-        <div className="ttt-row">
-          {renderCell(3)}
-          {renderCell(4)}
-          {renderCell(5)}
-        </div>
-        <div className="ttt-row">
-          {renderCell(6)}
-          {renderCell(7)}
-          {renderCell(8)}
+            <form onSubmit={handleJoinRoom}>
+              <input
+                placeholder="Enter room code"
+                value={joinCodeInput}
+                onChange={(e) => setJoinCodeInput(e.target.value)}
+              />
+              <button type="submit">Join Room</button>
+            </form>
+          </div>
+        )}
+
+        {roomId && (
+          <div className="room-info">
+            <p>Room ID: {roomId}</p>
+            <p>Your mark: {myMark}</p>
+            <p>{gameStatusText}</p>
+          </div>
+        )}
+
+        <div className="ttt-board">
+          <div className="ttt-row">
+            {renderCell(0)}
+            {renderCell(1)}
+            {renderCell(2)}
+          </div>
+          <div className="ttt-row">
+            {renderCell(3)}
+            {renderCell(4)}
+            {renderCell(5)}
+          </div>
+          <div className="ttt-row">
+            {renderCell(6)}
+            {renderCell(7)}
+            {renderCell(8)}
+          </div>
         </div>
       </div>
     </div>

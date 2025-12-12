@@ -5,12 +5,12 @@ import { Link } from "react-router-dom";
 
 
 export function RPSGamePage() {
-    const settings = loadSettings() || {};
-    const [score, setScore] = useState({player: 0, cpu:0, ties: 0});
-    const [history, setHistory] = useState([]);
-    const [lastPlayerMove, setLastPlayerMove] = useState(null);
+  const settings = loadSettings() || {};
+  const [score, setScore] = useState({ player: 0, cpu: 0, ties: 0 });
+  const [history, setHistory] = useState([]);
+  const [lastPlayerMove, setLastPlayerMove] = useState(null);
 
-    function handleMove(playerMove) {
+  function handleMove(playerMove) {
     const cpuMove = getCpuMove({
       difficulty: settings?.difficulty || "normal",
       lastPlayerMove
@@ -33,46 +33,48 @@ export function RPSGamePage() {
 
   return (
     <main className="card">
-      <Link to="/">Back to hub</Link>
-      <header>
-        <h2>Rock Paper Scissors</h2>
-      </header>
+      <div className="game-shell">
+        <Link to="/">Back to hub</Link>
+        <header>
+          <h1>Rock Paper Scissors</h1>
 
-      <div data-testid="greeting">
-        {settings?.name ? `Welcome, ${settings.name}!` : ""}
+          <div data-testid="greeting">
+            {settings?.name ? `Welcome, ${settings.name}!` : ""}
+          </div>
+
+          <div className="difficulty-info" id="current-difficulty">
+            Difficulty: {settings?.difficulty || "normal"}
+          </div>
+        </header>
+
+        <div className="game-actions">
+          <button data-move="rock" onClick={() => handleMove("rock")} aria-label="Play Rock">
+            Rock
+          </button>
+          <button data-move="paper" onClick={() => handleMove("paper")} aria-label="Play Paper">
+            Paper
+          </button>
+          <button data-move="scissors" onClick={() => handleMove("scissors")} aria-label="Play Scissors">
+            Scissors
+          </button>
+        </div>
+
+        <div className="score-row">
+          <div>Player: <span id="score-player">{score.player}</span></div>
+          <div>CPU: <span id="score-cpu">{score.cpu}</span></div>
+          <div>Ties: <span id="score-ties">{score.ties}</span></div>
+        </div>
+
+        <ul id="history" aria-label="Game history">
+          {history.map((entry, idx) => (
+            <li key={idx}>
+              {`Player(${entry.playerMove}) vs CPU(${entry.cpuMove}) — ${entry.outcome}`}
+            </li>
+          ))}
+        </ul>
+
+        <button id="reset-game" onClick={handleReset}>Reset Game</button>
       </div>
-
-      <div className="difficulty-info" id="current-difficulty">
-        Difficulty: {settings?.difficulty || "normal"}
-      </div>
-
-      <div className="game-actions">
-        <button data-move="rock" onClick={() => handleMove("rock")} aria-label="Play Rock"> 
-          Rock
-        </button>
-        <button data-move="paper" onClick={() => handleMove("paper")} aria-label="Play Paper">
-          Paper
-        </button>
-        <button data-move="scissors" onClick={() => handleMove("scissors")} aria-label="Play Scissors">
-          Scissors
-        </button>
-      </div>
-
-      <div className="score-row">
-        <div>Player: <span id="score-player">{score.player}</span></div>
-        <div>CPU: <span id="score-cpu">{score.cpu}</span></div>
-        <div>Ties: <span id="score-ties">{score.ties}</span></div>
-      </div>
-
-      <ul id="history" aria-label="Game history">
-        {history.map((entry, idx) => (
-          <li key={idx}>
-            {`Player(${entry.playerMove}) vs CPU(${entry.cpuMove}) — ${entry.outcome}`}
-          </li>
-        ))}
-      </ul>
-
-      <button id="reset-game" onClick={handleReset}>Reset Game</button>
     </main>
   );
 }

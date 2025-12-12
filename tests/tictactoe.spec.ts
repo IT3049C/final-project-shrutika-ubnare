@@ -10,7 +10,7 @@ test("TicTacToe loads and can play and reset", async ({ page }) => {
   const firstSquare = page.getByRole("button", { name: "" }).first();
   await firstSquare.click();
 
-  const goToStart = page.getByRole("button", { name: /go to game start/i });
+  const goToStart = page.getByRole("button", { name: /reset game/i });
   await goToStart.click();
 
   await expect(firstSquare).toHaveText("");
