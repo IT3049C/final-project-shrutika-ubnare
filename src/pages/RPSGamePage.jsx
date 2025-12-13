@@ -47,22 +47,22 @@ export function RPSGamePage() {
         <div className="game-actions">
           <button
             data-move="rock"
-            onClick={() => handleMove("rock")}
             aria-label="Play Rock"
+            onClick={() => handleMove("rock")}
           >
             Rock
           </button>
           <button
             data-move="paper"
-            onClick={() => handleMove("paper")}
             aria-label="Play Paper"
+            onClick={() => handleMove("paper")}
           >
             Paper
           </button>
           <button
             data-move="scissors"
-            onClick={() => handleMove("scissors")}
             aria-label="Play Scissors"
+            onClick={() => handleMove("scissors")}
           >
             Scissors
           </button>
@@ -83,12 +83,17 @@ export function RPSGamePage() {
         <ul id="history" aria-label="Game history">
           {history.map((entry, idx) => (
             <li key={idx}>
-              {`Player(${entry.playerMove}) vs CPU(${entry.cpuMove}) — ${entry.outcome}`}
+              Player({entry.playerMove}) vs CPU({entry.cpuMove}) —{" "}
+              {entry.outcome}
             </li>
           ))}
         </ul>
 
-        <button id="reset-game" onClick={handleReset}>
+        <button
+          id="reset-game"
+          aria-label="Reset Game"
+          onClick={handleReset}
+        >
           Reset Game
         </button>
       </div>
